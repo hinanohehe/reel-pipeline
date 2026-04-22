@@ -19,3 +19,6 @@ notion-client>=2.2.1
 
 # Environment variables
 python-dotenv>=1.0.0
+
+# Web app
+streamlit>=1.35.0

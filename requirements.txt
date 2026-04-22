@@ -1,0 +1,21 @@
+# YouTube → Instagram Reels Pipeline
+# Python 3.11+ required
+
+# Video download
+yt-dlp>=2024.1.0
+
+# Transcription (pulls in torch automatically)
+openai-whisper>=20231117
+
+# Claude API
+anthropic>=0.40.0
+
+# Google Drive
+google-api-python-client>=2.100.0
+google-auth>=2.23.0
+
+# Notion
+notion-client>=2.2.1
+
+# Environment variables
+python-dotenv>=1.0.0

@@ -1,0 +1,18 @@
+# API keys and credentials — never commit these
+.env
+.env.local
+*.json
+!requirements*.txt
+
+# Output clips
+reels_output/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# macOS
+.DS_Store

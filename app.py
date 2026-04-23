@@ -27,6 +27,27 @@ if "GOOGLE_CREDENTIALS_JSON_B64" in st.secrets and not Path("credentials.json").
     decoded = base64.b64decode(st.secrets["GOOGLE_CREDENTIALS_JSON_B64"]).decode()
     Path("credentials.json").write_text(decoded)
 
+# ── Debug info (shown in sidebar) ─────────────────────────────────────────────
+with st.sidebar:
+    st.subheader("Debug Info")
+    b64_val = os.getenv("YOUTUBE_COOKIES_B64", "")
+    raw_val = os.getenv("YOUTUBE_COOKIES", "")
+    st.write(f"YOUTUBE_COOKIES_B64 in secrets: `{'YOUTUBE_COOKIES_B64' in st.secrets}`")
+    st.write(f"YOUTUBE_COOKIES_B64 in env: `{bool(b64_val)}`")
+    if b64_val:
+        st.write(f"YOUTUBE_COOKIES_B64 first 20 chars: `{b64_val[:20]}`")
+        st.write(f"YOUTUBE_COOKIES_B64 length: `{len(b64_val)}`")
+        try:
+            import base64 as _b64
+            decoded_cookies = _b64.b64decode(b64_val).decode("utf-8")
+            st.write(f"Decoded cookies length: `{len(decoded_cookies)}` chars")
+            st.write(f"Decoded first line: `{decoded_cookies.splitlines()[0][:60]}`")
+        except Exception as e:
+            st.write(f"Base64 decode error: `{e}`")
+    else:
+        st.write("YOUTUBE_COOKIES_B64: not set")
+    st.write(f"YOUTUBE_COOKIES in env: `{bool(raw_val)}`")
+
 # ── Import pipeline ────────────────────────────────────────────────────────────
 from reel_pipeline import (
     validate_youtube_url,

@@ -178,10 +178,15 @@ def download_video(url: str, output_dir: Path) -> tuple[Path, str]:
     }
 
     # Inject cookies if provided (most reliable fix for cloud IP blocks)
-    cookies_content = os.getenv("YOUTUBE_COOKIES", "").strip()
-    if cookies_content:
+    # Accepts base64-encoded cookies (YOUTUBE_COOKIES_B64) or raw text (YOUTUBE_COOKIES)
+    import base64 as _b64
+    cookies_b64 = os.getenv("YOUTUBE_COOKIES_B64", "").strip()
+    cookies_raw = os.getenv("YOUTUBE_COOKIES", "").strip()
+    if cookies_b64:
+        cookies_raw = _b64.b64decode(cookies_b64).decode("utf-8")
+    if cookies_raw:
         cookies_file = output_dir / "yt_cookies.txt"
-        cookies_file.write_text(cookies_content)
+        cookies_file.write_text(cookies_raw)
         base_opts["cookiefile"] = str(cookies_file)
 
     # Try each combination in order until one succeeds

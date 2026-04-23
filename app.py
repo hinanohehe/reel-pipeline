@@ -17,7 +17,7 @@ if not os.getenv("ANTHROPIC_API_KEY"):
 for key in [
     "ANTHROPIC_API_KEY", "NOTION_API_KEY", "NOTION_DATABASE_ID",
     "NOTION_LONG_FORM_DB_ID", "GOOGLE_DRIVE_PARENT_FOLDER_ID",
-    "YOUTUBE_COOKIES",
+    "YOUTUBE_COOKIES", "YOUTUBE_COOKIES_B64",
 ]:
     if key in st.secrets and not os.getenv(key):
         os.environ[key] = st.secrets[key]

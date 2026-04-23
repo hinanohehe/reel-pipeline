@@ -166,36 +166,65 @@ def validate_youtube_url(url: str) -> bool:
 def download_video(url: str, output_dir: Path) -> tuple[Path, str]:
     """
     Download the best-quality mp4 with yt-dlp.
+    Tries multiple client/format combinations to work around cloud IP blocks.
     Returns (video_path, video_title).
     """
-    ydl_opts = {
-        "format": "bestvideo+bestaudio/best",
+    base_opts = {
         "outtmpl": str(output_dir / "%(title)s.%(ext)s"),
         "merge_output_format": "mp4",
         "noplaylist": True,
         "quiet": True,
         "no_warnings": True,
-        # tv_embedded bypasses most cloud-IP blocks; ios as fallback
-        "extractor_args": {"youtube": {"player_client": ["tv_embedded", "ios", "web"]}},
     }
 
-    # Use YouTube cookies from env if provided (required for cloud server IPs)
+    # Inject cookies if provided (most reliable fix for cloud IP blocks)
     cookies_content = os.getenv("YOUTUBE_COOKIES", "").strip()
     if cookies_content:
         cookies_file = output_dir / "yt_cookies.txt"
         cookies_file.write_text(cookies_content)
-        ydl_opts["cookiefile"] = str(cookies_file)
+        base_opts["cookiefile"] = str(cookies_file)
 
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(url, download=True)
-        title = info.get("title", "Unknown_Title")
+    # Try each combination in order until one succeeds
+    attempts = [
+        {"format": "bestvideo+bestaudio/best",
+         "extractor_args": {"youtube": {"player_client": ["ios"]}}},
+        {"format": "best",
+         "extractor_args": {"youtube": {"player_client": ["ios"]}}},
+        {"format": "bestvideo+bestaudio/best",
+         "extractor_args": {"youtube": {"player_client": ["tv_embedded"]}}},
+        {"format": "best",
+         "extractor_args": {"youtube": {"player_client": ["tv_embedded"]}}},
+        {"format": "best"},
+    ]
 
-    mp4_files = list(output_dir.glob("*.mp4"))
-    if not mp4_files:
-        raise FileNotFoundError("yt-dlp completed but no mp4 file was found.")
+    last_error = None
+    for extra in attempts:
+        try:
+            opts = {**base_opts, **extra}
+            with yt_dlp.YoutubeDL(opts) as ydl:
+                info = ydl.extract_info(url, download=True)
+                title = info.get("title", "Unknown_Title")
 
-    video_path = max(mp4_files, key=lambda p: p.stat().st_mtime)
-    return video_path, title
+            mp4_files = list(output_dir.glob("*.mp4"))
+            if not mp4_files:
+                # May have downloaded webm — find any video file
+                all_files = [
+                    p for p in output_dir.iterdir()
+                    if p.suffix in {".mp4", ".webm", ".mkv"}
+                ]
+                if not all_files:
+                    raise FileNotFoundError("No video file found after download.")
+                video_path = max(all_files, key=lambda p: p.stat().st_mtime)
+            else:
+                video_path = max(mp4_files, key=lambda p: p.stat().st_mtime)
+
+            return video_path, title
+
+        except Exception as exc:
+            last_error = exc
+            continue
+
+    raise RuntimeError(f"All download attempts failed. Last error: {last_error}")
 
 
 # ── Step 2: Transcribe ─────────────────────────────────────────────────────────

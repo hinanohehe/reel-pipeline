@@ -25,10 +25,10 @@ for key in [
         os.environ[key] = st.secrets[key]
 
 # Write credentials.json from secrets if present (Streamlit Cloud)
-if "GOOGLE_CREDENTIALS_JSON" in st.secrets and not Path("credentials.json").exists():
-    import json
-    creds = dict(st.secrets["GOOGLE_CREDENTIALS_JSON"])
-    Path("credentials.json").write_text(json.dumps(creds))
+if "GOOGLE_CREDENTIALS_JSON_B64" in st.secrets and not Path("credentials.json").exists():
+    import base64
+    decoded = base64.b64decode(st.secrets["GOOGLE_CREDENTIALS_JSON_B64"]).decode()
+    Path("credentials.json").write_text(decoded)
 
 # ── Import pipeline (after env is set) ────────────────────────────────────────
 from reel_pipeline import (

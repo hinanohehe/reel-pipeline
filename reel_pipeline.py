@@ -169,7 +169,7 @@ def download_video(url: str, output_dir: Path) -> tuple[Path, str]:
     Returns (video_path, video_title).
     """
     ydl_opts = {
-        "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+        "format": "bestvideo+bestaudio/best",
         "outtmpl": str(output_dir / "%(title)s.%(ext)s"),
         "merge_output_format": "mp4",
         "noplaylist": True,

@@ -175,15 +175,16 @@ def download_video(url: str, output_dir: Path) -> tuple[Path, str]:
         "noplaylist": True,
         "quiet": True,
         "no_warnings": True,
-        "extractor_args": {"youtube": {"player_client": ["android", "web"]}},
-        "http_headers": {
-            "User-Agent": (
-                "Mozilla/5.0 (Linux; Android 11; Pixel 5) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/90.0.4430.91 Mobile Safari/537.36"
-            )
-        },
+        # tv_embedded bypasses most cloud-IP blocks; ios as fallback
+        "extractor_args": {"youtube": {"player_client": ["tv_embedded", "ios", "web"]}},
     }
+
+    # Use YouTube cookies from env if provided (required for cloud server IPs)
+    cookies_content = os.getenv("YOUTUBE_COOKIES", "").strip()
+    if cookies_content:
+        cookies_file = output_dir / "yt_cookies.txt"
+        cookies_file.write_text(cookies_content)
+        ydl_opts["cookiefile"] = str(cookies_file)
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
